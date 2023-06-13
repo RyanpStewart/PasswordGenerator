@@ -7,93 +7,68 @@ const numberEl = document.getElementById("number");
 const symbolEl = document.getElementById("symbol");
 const generateEl = document.getElementById("generate");
 
-const upperLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const lowerLetters = "abcdefghijklmnopqrstuvwxyz";
-const numbers = "0123456789";
-const symbols = "!@#$%^&*()_+=";
+const characterSets = {
+  upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  lower: "abcdefghijklmnopqrstuvwxyz",
+  number: "0123456789",
+  symbol: "!@#$%^&*()_+="
+};
 
-function getLowercase() {
-    return lowerLetters[Math.floor(Math.random() * lowerLetters.length)];
-}
-
-function getUppercase() {
-    return upperLetters[Math.floor(Math.random() * upperLetters.length)];
-}
-
-function getNumber() {
-    return numbers[Math.floor(Math.random() * numbers.length)];
-}
-
-function getSymbol() {
-    return symbols[Math.floor(Math.random() * symbols.length)];
+function getRandomCharacter(charSet) {
+  return charSet[Math.floor(Math.random() * charSet.length)];
 }
 
 function generatePassword() {
-    const len = lenEl.value;
+  const len = lenEl.value;
+  const selectedSets = [];
 
-    let password = "";
+  if (upperEl.checked) {
+    selectedSets.push(characterSets.upper);
+  }
 
-    if (upperEl.checked) {
-        password += getUppercase();
-    }
+  if (lowerEl.checked) {
+    selectedSets.push(characterSets.lower);
+  }
 
-    if (lowerEl.checked) {
-        password += getLowercase();
-    }
+  if (numberEl.checked) {
+    selectedSets.push(characterSets.number);
+  }
 
-    if (numberEl.checked) {
-        password += getNumber();
-    }
+  if (symbolEl.checked) {
+    selectedSets.push(characterSets.symbol);
+  }
 
-    if (symbolEl.checked) {
-        password += getSymbol();
-    }
+  if (selectedSets.length === 0) {
+    pwEl.innerText = "Select at least one character set";
+    return;
+  }
 
-    for (let i = password.length; i < len; i++) {
-        const x = generateX();
-        password += x;
-    }
+  let password = "";
 
-    pwEl.innerText = password;
+  for (let i = 0; i < len; i++) {
+    const randomSetIndex = Math.floor(Math.random() * selectedSets.length);
+    const randomCharSet = selectedSets[randomSetIndex];
+    password += getRandomCharacter(randomCharSet);
+  }
+
+  pwEl.innerText = password;
 }
 
-function generateX() {
-    const xs = [];
-    if (upperEl.checked) {
-        xs.push(getUppercase());
-    }
+function copyPasswordToClipboard() {
+  const password = pwEl.innerText;
 
-    if (lowerEl.checked) {
-        xs.push(getLowercase());
-    }
+  if (!password) {
+    return;
+  }
 
-    if (numberEl.checked) {
-        xs.push(getNumber());
-    }
-
-    if (symbolEl.checked) {
-        xs.push(getSymbol());
-    }
-
-    if (xs.length === 0) return "";
-
-    return xs[Math.floor(Math.random() * xs.length)];
+  navigator.clipboard.writeText(password)
+    .then(() => {
+      alert("Password copied to clipboard");
+    })
+    .catch((error) => {
+      console.error("Failed to copy password to clipboard:", error);
+    });
 }
 
 generateEl.addEventListener("click", generatePassword);
-
-copyEl.addEventListener("click", () => {
-    const textarea = document.createElement("textarea");
-    const password = pwEl.innerText;
-
-    if (!password) {
-        return;
-    }
-
-    textarea.value = password;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    textarea.remove();
-    alert("Password copied to clipboard");
-});
+copyEl.addEventListener("click", copyPasswordToClipboard);
